@@ -1,0 +1,972 @@
+---
+title: | 
+    | Statistical Analysis of Avocado Data for Predicting Average Price
+author: |
+ | Neetika Saxena
+output:
+  pdf_document: default
+  html_document: default
+---
+
+## Executive Summary
+
+Over the last decade, avocados have drawn worldwide popularity and have become household gems. They have been widely adapted from their use as lotions to their extravagant nutritional value. Due to their increased adaptation, businesses have widely researched and modeled the avocado market data to further understand the influential factors that impact their pricing structure. In this report, analyzed market data sourced from the Hass Avocado Board to better understand the features that impact avocado pricing. Here tested for three hypotheses and modeled various predictive methods to explain what can be used to predict avocado pricing. The three hypotheses tested are: 
+
+1. Avocado Pricing shows more relationship to season rather than region.
+2. Over time, across all regions, consumers become less price sensitive.
+3. There is a change in avocado prices during the seasonal California wildfires. 
+
+The models that are used in this paper include linear regression, subset selection, regularized regression, and ensemble methods.  Utilized the variety of modeling techniques to conclude that the random forest model ensemble method generates the best predictive performance which lists the type, avocado size, and bag  sizes as the most influential variables in determining average price. Furthermore, our analysis has shown that there is evidence to support that the season of sales has more of a relationship with average price than region, pricing demand is inelastic over time, and the relationship of seasonal California wildfires and average price is significant. 
+
+\pagebreak
+
+## A. Introduction
+
+As one of the most lucrative fruits of the last decade, avocados have risen to capture the country's appetite across a wide variety of means. Over the last ten years, avocados have been widely adapted from personal decorations to meal temptations. More specifically, the number of avocados consumed in the United States has increased significantly and this trend can be seen through a variety of social norms such as increased focus on healthy eating, National Guacamole Day, Instagram feeds balanced with avocado photos, and even the popular “Millennial Avocado Toasts.” Fueled by the millennial hype, avocados have become incredibly popular among people of all ages. While avocados have made waves from a social perspective, it is important to consider the impact of this increased demand on the pricing and retail volume. In this paper, analyzed which factors could be used to predict future avocado sales.
+
+To get a better idea of how avocados are purchased throughout the United States, went right to the prime source of information for avocados which is known the Hass Avocado Board. The Hass Avocado Board (HAB) is an elite avocado organization that provides the global industry with consolidated supply and market data, conducts nutrition research, educates health professionals, and brings people together from all corners of earth to bring avocados to new levels. While the Hass Avocado Board services the global supply, their primary research is done in the United States market. As the primary source of avocado data in the United States, utilized their data to assist us in our analysis. 
+Before going into the testing and analysis, it is important to understand the purpose of analyzing avocado data. Analyzing the data obtained from the Hass Avocado Board can serve to be meaningful from a business perspective as it can be beneficial to understand pricing trends due to certain factors. Understanding the impact of each variable on the pricing model can help businesses better predict future pricing and analyze the demand that is generally associated with it. Furthermore, businesses will be able to adapt to changes in the avocado sales environment if they know what factors are significantly impactful to the demand model. Lastly, this process can help lead to higher profits and lower prices. 
+
+In our scientific analysis tested three different hypotheses and then create predictive models to further predict future prices. The three hypotheses that will test are as follows:
+
+1. Avocado Pricing shows more relationship to season rather than region.
+2. Over time, across all regions, consumers become less price sensitive.
+3. There is a change in avocado prices during the seasonal California wildfires. 
+
+Now that I have introduced the purpose for avocado analysis and provided reason for businesses to benefit from this analysis, it is important to further detail the dataset. In the next section,I will introduce our dataset and provide further data description on the observations. 
+
+## B. Data Description
+
+As mentioned in the introduction, the root source of our data is the Hass Avocado Board.  However, due to the private nature of the HAB avocado market data, had to source our dataset from a Kaggle dataset which was sourced from the HAB itself. The Kaggle dataset was labeled as “Avocado Prices (2020)” and provides 30021 observations about avocado sales from the Hass Avocado Board Weekly Retail Volume & Pricing reports. This dataset represents avocados sales solely in the United States from January 4 2015 until May 4 2020.  It involves a total of thirteen variables which provide more detail regarding the market data on avocados.
+
+ \pagebreak
+ 
+**Dataset extracted from Kaggle:**
+
++---------------+-----------------------------------------------+----------------------+
+| Column        | Description                                   | Data Type            |
++===============+===============================================+======================+
+| date          | The date of the observation                   | date                 |
++---------------+-----------------------------------------------+----------------------+
+| average_price | The average price of a single avocado         | numeric              |
++---------------+-----------------------------------------------+----------------------+
+| type          | Conventional or Organic                       | numeric              |
++---------------+-----------------------------------------------+----------------------+
+| year          | Year                                          | numeric              |
++---------------+-----------------------------------------------+----------------------+
+| geography     | The city or region of the observation         | Factor w/ 53 levels  |
++---------------+-----------------------------------------------+----------------------+
+| total_volume  | Total number of avocados sold                 | numeric              |
++---------------+-----------------------------------------------+----------------------+
+| 4046          | Total number of avocados with PLU 4046 (size) | numeric              |
++---------------+-----------------------------------------------+----------------------+
+| 4225          | Total number of avocados with PLU 4225 (size) | numeric              |
++---------------+-----------------------------------------------+----------------------+
+| 4770          | Total number of avocados with PLU 4770 (Size) | numeric              |
++---------------+-----------------------------------------------+----------------------+
+| total_bags    | Total number of bags sold                     | numeric              |
++---------------+-----------------------------------------------+----------------------+
+| small_bags    | Total number of small_bags sold               | numeric              |
++---------------+-----------------------------------------------+----------------------+
+| large_bags    | Total number of large_bags sold               | numeric              |
++---------------+-----------------------------------------------+----------------------+
+| xlarge_bags   | Total number of xlarge_bags sold              | numeric              |
++---------------+-----------------------------------------------+----------------------+
+
+All of the column names with more than one word are separated with "snake_case" which helps create consistency throughout the variable names. Furthermore the data was presorted by date and geography.
+
+After pre-processing the data, determined that nine more variables as required to test for our hypotheses and building predictive models. The following variables were computed and added to the raw dataset to bring it to a total of twenty two variables.
+
+**Variables added to the raw dataset from Kaggle:**
+
++---------------+-----------------------------------------------+----------------------+
+| Column        | Description                                   | Data Type            |
++===============+===============================================+======================+
+| region        | Further classification of the geography column| Factor w/ 4 levels   |
++---------------+-----------------------------------------------+----------------------+
+| season        | Classification of the purchases by season     | Factor w/ 4 levels   |
++---------------+-----------------------------------------------+----------------------+
+| year2015      | Purchase in 2015                              | Factor w/ 2 levels   |
++---------------+-----------------------------------------------+----------------------+
+| year2016      | Purchase in 2016                              | Factor w/ 2 levels   |
++---------------+-----------------------------------------------+----------------------+
+| year2017      | Purchase in 2017                              | Factor w/ 2 levels   |
++---------------+-----------------------------------------------+----------------------+
+| year2018      | Purchase in 2018                              | Factor w/ 2 levels   |
++---------------+-----------------------------------------------+----------------------+
+| year2019      | Purchase in 2019                              | Factor w/ 2 levels   |
++---------------+-----------------------------------------------+----------------------+
+| year2020      | Purchase in 2020                              | Factor w/ 2 levels   |
++---------------+-----------------------------------------------+----------------------+
+| fire          | Classification of fires in California         | Factor w/ 2 levels   |
++---------------+-----------------------------------------------+----------------------+
+
+The computations for these nine new variables will be described in Section C: Preprocessing the Data.
+
+The levels of the factor variables listed in the table are as follows:
+
+1. geography = Albany, Atlanta, Chicago, Denver, Portland, Sacramento, etc
+2. region = Northeast, Midwest, South, West
+3. season = Winter, Spring, Summer, Fall
+4. year2015 = 0 - No, 1 - Yes
+5. year2016 = 0 - No, 1 - Yes
+6. year2017 = 0 - No, 1 - Yes
+7. year2018 = 0 - No, 1 - Yes
+8. year2019 = 0 - No, 1 - Yes
+9. year2020 = 0 - No, 1 - Yes 
+10. fire = 0 - No, 1 - Yes
+
+
+## C. Preprocessing the Data
+
+```{r loadPackages, include = FALSE}
+pacman::p_load(ggplot2, knitr, GGally, gridExtra, dplyr, lubridate, lattice,
+               corrplot, data.table, AICcmodavg, rstatix, caret, leaps,
+               forecast, glmnet, tree, randomForest, gbm, rpart, rpart.plot)
+theme_set(theme_classic())
+```
+
+
+```{r loadData, include = FALSE}
+# Read Avocado Dataset from .csv file
+avocado = read.csv("avocado-updated-2020.csv")
+# Check the structure of the input
+str(avocado)
+```
+As part of the initial step of preprocessing, the dataset was imported and checked to see if all of the variables were imported with the correct data formatting. In the avocado data, the following variables were incorrectly classified as follows: date as numeric, type as character, and year as numeric. These variables were modified to correctly classify them with the following data types: date as date, type as factor, and year as factor.
+```{r dataTypes, include = FALSE}
+# Convert date column into Date format
+avocado$date = ymd(avocado$date)
+# Convert type column as factor
+avocado$type = as.factor(avocado$type)
+# Convert year column as factor
+avocado$year = as.factor(avocado$year)
+
+# Check structure once again to make sure everything is changed
+str(avocado)
+```
+Furthermore, to conduct our analysis, decided to compute and compile nine more variables and add them to our dataset. The first variable that was added was the region classification variable. This variable was compiled by taking each observation's geography value and assigning the corresponding regions defined by U.S.federal government. The second variable that was added was the season classification variable. For the season variable, the month of each observation was observed and then the season variable was assigned the corresponding season in the Northern Hemisphere. The third variable that was added is the variable for fire. This variable is a classification variable that states whether or not there was a fire in California during this time. To compute this variable, the month and year of each observation were compared to the data provided by the California Department of Forestry and Fire Protection. Lastly, the remaining six variables were the following: year2015, year2016, year2017, year2018, year2019, year2020. These variables were computed as classification variables for each year using the existing year column. The purpose of having each year as a separate column is to determine whether or not each variable is significant. The data types of each of the nine variables are as follows: region as factor, season as factor, year2015 as factor, year2016 as factor, year2017 as factor, year2018 as factor, year2019 as factor, year2020 as factor, fire as factor. 
+
+```{r modifyColumns, include = FALSE}
+# Adding column for region
+avocado$region<-"region"
+
+Northeast <- c("Albany","Boston","Buffalo/Rochester","Harrisburg/Scranton","Hartford/Springfield","New York","Northeast","Northern New England","Philadelphia","Syracuse","Pittsburgh")
+Midwest<- c("Chicago", "Cincinnati/Dayton","Columbus","Detroit","Grand Rapids","Great Lakes","Indianapolis", "St. Louis")
+South<- c("Charlotte","Dallas/Ft. Worth","Houston","Miami/Ft. Lauderdale","Midsouth","Nashville","New Orleans/Mobile","Orlando","Plains","Raleigh/Greensboro","Roanoke","South Carolina","South Central","Southeast","Tampa","Jacksonville","Atlanta","Baltimore/Washington","Louisville")
+West<- c("Boise","California","Denver","Las Vegas","Los Angeles","Phoenix/Tucson","Portland","Richmond/Norfolk","Sacramento","San Diego", "San Francisco","Seattle","Spokane","West","West Tex/New Mexico")
+
+for (val in avocado$geography)
+ {
+  if (val %in% Northeast)
+  {avocado$region[avocado$geography==val] <- "Northeast"}
+
+  else if (val %in% Midwest)
+  {avocado$region[avocado$geography==val] <- "Midwest"}
+
+  else if (val %in% South)
+  {avocado$region[avocado$geography==val] <- "South"}
+
+  else if (val %in% West)
+  {avocado$region[avocado$geography==val] <- "West"}
+
+  else
+    {avocado$region[avocado$geography==val] <- NA }
+}
+
+# Convert region column as factor
+avocado$region = as.factor(avocado$region)
+
+# Adding column for season
+avocado$season <- "Fall"
+
+for (i in 1:nrow(avocado)){
+  if((month(avocado$date[i]) >= 1 && month(avocado$date[i]) <= 2)| (month(avocado$date[i]) == 12 ) ){
+    season <- "Winter"
+  } else if(month(avocado$date[i]) >= 3 & month(avocado$date[i]) <= 5){
+    season <- "Spring"
+  } else if(month(avocado$date[i]) >= 6 & month(avocado$date[i]) <= 8){
+    season <- "Summer"
+  } else if(month(avocado$date[i]) >= 9 & month(avocado$date[i]) <= 11){
+    season <- "Fall"
+  }
+  avocado$season[i] <- season
+}
+
+# Convert season column as factor
+avocado$season = as.factor(avocado$season)
+
+# Adding Columns for Years
+avocado$year2015 <- "2015"
+avocado$year2016 <- "2016"
+avocado$year2017 <- "2017"
+avocado$year2018 <- "2018"
+avocado$year2019 <- "2019"
+avocado$year2020 <- "2020"
+
+for (i in 1:nrow(avocado)){
+  if(year(avocado$date[i]) == 2015){
+    avocado$year2015[i] <- 1
+    avocado$year2016[i] <- 0
+    avocado$year2017[i] <- 0
+    avocado$year2018[i] <- 0
+    avocado$year2019[i] <- 0
+    avocado$year2020[i] <- 0
+  } else if(year(avocado$date[i]) == 2016){
+    avocado$year2015[i] <- 0
+    avocado$year2016[i] <- 1
+    avocado$year2017[i] <- 0
+    avocado$year2018[i] <- 0
+    avocado$year2019[i] <- 0
+    avocado$year2020[i] <- 0
+  } else if(year(avocado$date[i]) == 2017){
+    avocado$year2015[i] <- 0
+    avocado$year2016[i] <- 0
+    avocado$year2017[i] <- 1
+    avocado$year2018[i] <- 0
+    avocado$year2019[i] <- 0
+    avocado$year2020[i] <- 0
+  } else if(year(avocado$date[i]) == 2018){
+    avocado$year2015[i] <- 0
+    avocado$year2016[i] <- 0
+    avocado$year2017[i] <- 0
+    avocado$year2018[i] <- 1
+    avocado$year2019[i] <- 0
+    avocado$year2020[i] <- 0
+  } else if(year(avocado$date[i]) == 2019){
+    avocado$year2015[i] <- 0
+    avocado$year2016[i] <- 0
+    avocado$year2017[i] <- 0
+    avocado$year2018[i] <- 0
+    avocado$year2019[i] <- 1
+    avocado$year2020[i] <- 0
+  } else if(year(avocado$date[i]) == 2020){
+    avocado$year2015[i] <- 0
+    avocado$year2016[i] <- 0
+    avocado$year2017[i] <- 0
+    avocado$year2018[i] <- 0
+    avocado$year2019[i] <- 0
+    avocado$year2020[i] <- 1
+  }
+}
+# Converting years to factor type
+avocado$year2015 <- as.factor(avocado$year2015)
+avocado$year2016 <- as.factor(avocado$year2016)
+avocado$year2017 <- as.factor(avocado$year2017)
+avocado$year2018 <- as.factor(avocado$year2018)
+avocado$year2019 <- as.factor(avocado$year2019)
+avocado$year2020 <- as.factor(avocado$year2020)
+
+#Adding Column for Fire
+avocado$fire <- "Fire"
+
+for (i in 1:nrow(avocado)){
+  if((year(avocado$date[i]) == 2015) & (month(avocado$date[i]) == 6 | month(avocado$date[i]) == 8 | month(avocado$date[i]) == 12)){
+    avocado$fire[i] <- 1
+  } else if((year(avocado$date[i]) == 2016) & (month(avocado$date[i]) >= 5 & month(avocado$date[i]) <= 9)){
+    avocado$fire[i] <- 1
+  } else if((year(avocado$date[i]) == 2017) & ((month(avocado$date[i]) >= 5 & month(avocado$date[i]) <= 7)|month(avocado$date[i]) == 11|month(avocado$date[i]) == 12)){
+    avocado$fire[i] <- 1
+  } else if((year(avocado$date[i]) == 2018) & (month(avocado$date[i]) == 1 | month(avocado$date[i]) == 7|month(avocado$date[i]) == 8|month(avocado$date[i]) == 11)){
+    avocado$fire[i] <- 1
+  } else if((year(avocado$date[i]) == 2019) & (month(avocado$date[i]) == 6 | month(avocado$date[i]) == 11)){
+    avocado$fire[i] <- 1
+  } else {
+    avocado$fire[i] <- 0
+  }
+}
+
+avocado$fire <- as.factor(avocado$fire)
+```
+Once all of the variables were added and correctly classified, conducted duplicate analysis to identify any duplicated observations and determined that the geography value of 'Total U.S.' was a summation of the other factors of the geography variable. As these values were duplicates, there were 556 observations removed in which the geography variable was equal to 'Total U.S.', leaving the dataset with 29465 remaining observations. 
+```{r remove, include = FALSE}
+# Remove Total US from calculation
+count(avocado[avocado$geography == "Total U.S.",])
+avocado <- avocado[avocado$geography != 'Total U.S.',]
+avocado$geography <- as.factor(avocado$geography)
+```
+Lastly, checked the data for any missing values and determined that this dataset was complete and there were no missing values. 
+```{r valueCheck, include = FALSE}
+# Checking for duplicate rows
+sum(duplicated(avocado))
+# Checking for empty data values
+sum(is.na(avocado))
+# Remove empty data values
+avocado <- na.omit(avocado)
+```
+
+## D. Exploratory Data Analysis 
+
+To conduct the analysis in this project, Use the following R packages: ggplot2, knitr, GGally, gridExtra, dplyr, lubridate, lattice, corrplot, data.table, AICcmodavg, rstatix, caret, leaps, forecast, glmnet, tree, randomForest, gbm, rpart, rpart.plot.
+
+Before jumping into the testing phase, conducted preliminary analysis to identify the main characteristics of the data. This analysis was done to further understand the data and determine whether this data was adequate for our testing.
+
+To start off our exploration on the data, created a histogram to identify the distribution of average_price among the observations. 
+
+```{r priceHistogram, echo = FALSE}
+# Histogram of average price across all categories
+ggplot(avocado, aes(x=average_price)) +
+geom_histogram(bins = 30) + ggtitle("Histogram of Average Price Distribution")
+```
+The histogram above of average price shows that the dataset is slightly right-skewed. This appears to be a bimodal dataset with the mode closer to the left of the graph and mode being smaller than either the mean or the median. The mean (\$1.39) appears to be greater than the median (\$1.35) and the shape indicates that there are some data points, perhaps outliers, that are greater than the mode.
+
+Continuing on, the next graph is a box plot which displays the distribution of the average_price during the different years in the dataset.
+
+```{r priceByYear, echo = FALSE}
+#compute average price per year
+avg_avocados = avocado %>%
+  select(average_price,year) %>%
+  group_by(year) %>%
+  filter(average_price < quantile(average_price, 0.99))
+
+avg_avocado_box = ggplot(avg_avocados, aes(factor(year), average_price)) + geom_boxplot(aes(fill = factor(year)), width = 0.75) + labs(title="Average_Price distribution of Avocados Per Year", x="Year", y="Average Price ($)") + scale_fill_brewer(palette="Greens")
+print(avg_avocado_box)
+```
+This box plot displays the distribution of the average price variable by the different years in the dataset. The year of 2017 seems to have the highest median of the average prices while the year of 2020 shows the lowest median of average prices. It is important to remember that the 2020 data is only up until the month of May, so that year is incomplete and this could affect the average price for that year. One potential cause of 2017 having the highest median of the average prices could be that 2017 was one of the worst years for California wildfires, so this could provide support for the hypothesis that there is an increase in avocado prices due to the California wildfires.
+
+To observe the time distribution of the average prices, the various geographies were charted by their average prices throughout the year. 
+
+```{r priceVSregion, echo = FALSE}
+sortedAvocado = avocado %>% 
+  group_by(geography) %>%
+  mutate(avgvolume = mean(total_volume))
+plot = ggplot(data=sortedAvocado, aes(x=reorder(as.factor(geography), -avgvolume), y=average_price)) +
+  geom_point(aes(color=month(date), alpha=0.1, size=total_volume)) + theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  guides(size = "none") + guides(alpha = "none") + ggtitle("Price by Region based on time of Year")
+print(plot)
+```
+In the plot above, we can see that there seems to be a connection between the time of the year and the average prices.
+
+To check for any relationship in the type of avocado and the average prices, plotted the two using a box plot and a histogram.
+
+```{r conventionalOrganicComparison, echo = FALSE}
+ap1_org <- ggplot(aes(y = average_price), data = subset(avocado, type == 'organic')) +
+  geom_boxplot(fill = 'pink') + 
+  ylab('Average Price') +
+  ggtitle('Organic Avocado Boxplot')
+
+ap2_org <- ggplot(aes(x = average_price), data = subset(avocado, type == 'organic')) +
+  geom_histogram(fill = 'pink') +
+  scale_y_continuous(breaks = seq(0,1000,100)) + 
+  scale_x_continuous(breaks = seq(0,3.25,.5)) +
+  ggtitle('Organic Avocado Histogram')
+
+ap1_con <- ggplot(aes(y = average_price), data = subset(avocado, type == 'conventional')) +
+  geom_boxplot(fill = 'orange') + 
+  scale_y_continuous(breaks = seq(0,2.5,.25)) +
+  ylab('Average Price') +
+  ggtitle('Conventional Avocado Boxplot')
+
+ap2_con <- ggplot(aes(x = average_price), data = subset(avocado, type == 'conventional')) +
+  geom_histogram(fill = 'orange') +
+  scale_y_continuous(breaks = seq(0,800,100)) +
+  scale_x_continuous(breaks = seq(0,2.25,.25)) +
+  ggtitle('Conventional Avocado Histogram')
+suppressMessages(grid.arrange(ap1_org, ap2_org, ap1_con, ap2_con, ncol = 2)) 
+```
+The average price range for organic avocados appears to be less than that of the conventional avocados. Furthermore, we observe more outliers for organic avocados than for conventional avocados. The histogram for average prices of organic avocados appears to be bell shaped implying the data to be normally distributed. However, it also shows many outliers at both ends. The mean, mode, and median appears to be pretty close and at around \$1.5. The histogram for average prices of conventional avocados is right skewed showing more outliers on the right side of the graph. The median average price for conventional avocados appears to be in between \$1 - $1.25. This shows that in general, organic avocados are more expensive than conventional ones.
+
+Lastly, to check for any preliminary correlation between variables, created a correlation matrix of all of the numeric variables.
+
+```{r corrPlot, echo = FALSE}
+avocado.dt = data.table(avocado)
+M = cor(avocado.dt[,!c("date","type","geography","year", "region", "season", "year2015", "year2016", "year2017", "year2018", "year2019", "year2020","fire")])
+corrplot(M, method="number", bg = "white")
+```
+There does not seem to be any extraordinary variable correlations in this matrix.
+
+## E. Empirical Analysis
+
+### 1. Tests for Hypothesis 1
+
+
+**Hypothesis 1: Avocado pricing shows more relationship to season rather than region**
+
+To test this hypothesis, first ran One Way ANOVA analysis to determine whether the relationship between the categorical values of regions (such as Midwest, Northeast, etc) and the continuous values of price was significant or not.
+
+```{r ANOVAregion, echo = FALSE}
+# 1. Run 1 way anova analysis on with each variable 
+one_way_region <- aov(average_price ~ region, data = avocado)
+summary(one_way_region)
+```
+As shown in the results, based on the p-value of `r summary(one_way_region)[[1]][["Pr(>F)"]][[1]]` it is shown that the connection between the independent categorical values of region is significant when compared to the dependent continuous values of average price.
+
+This test was then repeated using the categorical values of seasons (such as Winter, Summer, etc) to also check if the relationship exhibited significance.
+
+```{r ANOVAseason, echo = FALSE}
+one_way_season <-  aov(average_price ~ season, data = avocado)
+summary(one_way_season)
+```
+As seen in the results, based on the p-value of `r summary(one_way_season)[[1]][["Pr(>F)"]][[1]]  ` it is shown that the connection between the independent categorical values of season is significant when compared to the dependent continuous values of average price.
+
+Moving forward, initially tested each of the categorical variables on their own, it was important to run a Two Way ANOVA test using both of them as independent variables to check if the overall model was still significant. For this test, it was assumed that there is no interaction between the region and the season as these are two completely independent variables and do not affect each other. 
+
+```{r TWOWAY, echo = FALSE}
+# 2. Run 2 way anova analysis with both variables, + is used here instead of * because there is no interaction between the variables
+two_way_anova <- aov(average_price ~ region + season, data = avocado)
+summary(two_way_anova)
+```
+Based on the results of this test, it is seen that both of the independent variables of region and season remain to have low p-values and theefore this test is significant. 
+
+Now, calculated three different models of ANOVA analysis, we need to determine which model was the best to use to measure effect. The metric that I decided to use to choose to determine the best model was the AIC value. The AIC value displays a metric for predictive error and therefore searched for the lowest AIC out of the three tests. 
+
+```{r bestFit, echo = FALSE}
+# 3. Finding the best-fit model
+model.set <- list(one_way_region, one_way_season, two_way_anova)
+model.names <- c("one_way_region", "one_way_season", "two_way")
+aictab(model.set, modnames = model.names)
+```
+As seen in the output above, the two-way test with both categorical variables displayed the lowest AICc value with a value of 24656.45 which was significantly lower than the other two tests. 
+
+Once chosen the best model to use, there is need to check whether this model fits the basic assumptions of Two-Way ANOVA testing. 
+
+```{r assumptions, echo = FALSE}
+# 4 Check if best model fits assumptions of homoscedasticity
+par(mfrow=c(2,2))
+plot(two_way_anova)
+par(mfrow=c(1,1))
+```
+Starting with the plot of Residuals vs Fitted, this plot shows the relationship between residuals and fitted values (in this case the means of each groups) which evidently shows no relationship between the variances. This passes the first assumption of homogeneity of variance. Moving forward to the second plot of Normal Q-Q, this plot proves that there is a normal distribution as most of the residuals are plotted along the line. Overall, we can conclude that this test passes the assumption of heteroscedasticity and normaility.
+
+Since the model fit all of the assumptions, we could now go into further analysis of what we can takeaway from the Two-Way ANOVA testing. As ANOVA testing compares the difference in means among groups, conducted post-hoc analysis to determine what the actual differences were.
+```{r post-hoc, echo = FALSE, error = FALSE, message = FALSE, warning= FALSE}
+# 5. Post-hoc testing to see what the differences between means are and see which groups differ from another
+# group_by(avocado, region, season) %>%
+#   summarise(
+#     count = n(),
+#     mean = mean(average_price, na.rm = TRUE),
+#     sd = sd(average_price, na.rm = TRUE)
+#   )
+
+model.tables(two_way_anova, type = "means", se = TRUE)
+
+TukeyHSD(two_way_anova)
+```
+As shown above, there seems to be significant differences in the mean of average price when moving among different values for each of the variables. For example there is a -0.18 difference when comparing the means of the South to the means of the Northeast, Similarly, there is also a -0.12 difference in average price when comparing the means of Spring and Fall. Overall, it is shown that the means are different among the different categorical values.
+
+The last analysis that needed to be done to prove effect was the calculation of the partial ETA squared. Partial ETA squared is a calculation variance in Y that could be used to determine how much can be attributed to a value of X. In this instance it will be used to measure the relationship of the categorical value of region and season in comparison to average price
+
+```{r partialETA, echo = FALSE}
+# 6. Utilize partial eta squared to analyze which variables have more effect
+#partial_eta_squared(one_way_region)
+#partial_eta_squared(one_way_season)
+partial_eta_squared(two_way_anova)
+```
+The categorical value of season shows a higher partial ETA squared value of 0.045 when compared to the partial ETA squared value for region which is 0.035. As season represents a higher value, we can deny our null hypothesis that the season does not have a stronger relationship to average price than region. There is evidence that season does have a higher relationship as evidenced by the higher partial ETA squared metric which is used to measure relationship size. For this hypothesis,used Two-Way ANOVA testing instead of linear regression for our analysis as this hypothesis involved categorical independent values that resulted in a continuous dependent value. Similarly, to calculate the effect, alternative tests that were considered were Pearson r correlation and Cohen's d/f, however these were not utilized due to the restraint of the categorical dependent variables and because partial ETA squared is using inline with ANOVA testing. 
+
+### 2. Tests for Hypothesis 2
+
+**Hypothesis 2: Over time, across all regions, consumers become less price sensitive.**
+
+To test for this hypothesis, conducted analysis on the price elasticity over the years and checked to see whether it was elastic or inelastic. Price elasticity of demand is the degree to which the demand changes as the price changes, so that is what we will use to check for price sensitivity. 
+
+As a preliminary testing measure, plotted the total volume of the avocados based on the average price to have an idea of the distribution of the demand at various prices. 
+
+```{r graphOfprices, echo = FALSE, warning = FALSE, message=FALSE}
+priceVDemand <- ggplot(data = avocado, aes(y = total_volume, x = average_price)) + geom_point(col = 'blue') + 
+  geom_smooth(method = 'lm', col = 'red', size = 0.5) + ylim(0,15000000)
+ priceVDemand
+```
+It can be concluded from this plot that the total volume generally decreases as the average price goes up. 
+
+Moving forward, to calculate the price elasticity of each of the years, ran linear regression models with total_volume as the dependent variable and the remaining variables as the independent variables for each of the years. Variables that were not used in this calculation were the variables of year, geography, year2015, year2016, year2017, year2018, year2019, year2020, and fire. The year variables were removed as this analysis was done on a per year basis, and the other two variables were removed due to multicolinearity concerns. Once did this for each year, Here took the coefficient estimate of average price multiplied by the result of the mean average price divided by the mean total volume which resulted in the values of price elasticity for each year. Once the price elasticity was calculated, it was classified based on the following classifications:
+
+Price Elasticity > 1 = Elastic 
+
+Price Elasticity = 1 = Unitary
+
+Price Elasticity < 1 = Inelastic
+
+```{r priceElasticity, include = FALSE}
+year1 <- avocado[avocado$year == "2015",-c(12,13,16,17,18,19,20,21,22)]
+year2 <- avocado[avocado$year == "2016",-c(12,13,16,17,18,19,20,21,22)]
+year3 <- avocado[avocado$year == "2017",-c(12,13,16,17,18,19,20,21,22)]
+year4 <- avocado[avocado$year == "2018",-c(12,13,16,17,18,19,20,21,22)]
+year5 <- avocado[avocado$year == "2019",-c(12,13,16,17,18,19,20,21,22)]
+
+demand.lm <- lm(total_volume~., data = year1)
+year1result <- tidy(demand.lm)
+priceElasticity1 <- year1result$estimate[3]* (mean(year1$average_price)/mean(year1$total_volume))
+priceElasticity1
+
+demand.lm <- lm(total_volume~., data = year2)
+year2result <- tidy(demand.lm)
+priceElasticity2 <- year2result$estimate[3]* (mean(year2$average_price)/mean(year2$total_volume))
+priceElasticity2
+
+demand.lm <- lm(total_volume~., data = year1)
+year3result <- tidy(demand.lm)
+priceElasticity3 <- year3result$estimate[3]* (mean(year3$average_price)/mean(year3$total_volume))
+priceElasticity3
+
+demand.lm <- lm(total_volume~., data = year1)
+year4result <- tidy(demand.lm)
+priceElasticity4<- year4result$estimate[3]* (mean(year4$average_price)/mean(year4$total_volume))
+priceElasticity4
+
+demand.lm <- lm(total_volume~., data = year1)
+year5result <- tidy(demand.lm)
+priceElasticity5 <- year5result$estimate[3]* (mean(year5$average_price)/mean(year5$total_volume))
+priceElasticity5
+
+
+par(mfrow=c(2,2))
+plot(demand.lm)
+par(mfrow=c(1,1))
+
+```
+
+The price elasticity values for each of the years were as follows:
+
+Year 2015: `r priceElasticity1`
+
+Year 2016: `r priceElasticity2`
+
+Year 2017: `r priceElasticity3`
+
+Year 2018: `r priceElasticity4`
+
+Year 2019: `r priceElasticity5`
+
+Based on these values of price elasticity, the years of 2015, 2017, 2018, and 2019 all display negative values for price elasticity of demand which means that those years were inelastic. In 2016 the value for price elasticity was positive showing that it was elastic. As the three most recent years are showing as inelastic, can deny null hypothesis that there is a elastic demand as the price changes. There is evidence here that the most recent years are displaying an inelastic demand and therefore, overtime, the price sensitivity has become inelastic. 
+
+### 3. Tests for Hypothesis 3
+
+**Hypothesis 3: There is a change in avocado prices during the seasonal California wildfires**
+
+To test for this hypothesis used Two-Way ANOVA testing to check whether this relationship is significant.
+
+To have an idea of the distribution of pricing throughout the years, plotted the price distribution over each month for each of the years to visualize how the price changes.
+
+```{r pricegraph, echo = FALSE, message = FALSE}
+p1 <-ggplot(aes(x = month(date), y = average_price), data = subset(avocado, year == '2015')) + geom_line(stat = 'summary',size = 1) +
+  ggtitle('Average Price over year 2015') + scale_x_continuous(breaks = c(1,2,3,4,5,6,7,8,9,10,11,12))
+p2 <-ggplot(aes(x = month(date), y = average_price), data = subset(avocado, year == '2016')) + geom_line(stat = 'summary',size = 1) +
+  ggtitle('Average Price over year 2016') + scale_x_continuous(breaks = c(1,2,3,4,5,6,7,8,9,10,11,12))
+p3 <-ggplot(aes(x = month(date), y = average_price), data = subset(avocado, year == '2017')) + geom_line(stat = 'summary',size = 1) +
+  ggtitle('Average Price over year 2017') + scale_x_continuous(breaks = c(1,2,3,4,5,6,7,8,9,10,11,12))
+p4 <-ggplot(aes(x = month(date), y = average_price), data = subset(avocado, year == '2018')) + geom_line(stat = 'summary',size = 1) +
+  ggtitle('Average Price over year 2018') + scale_x_continuous(breaks = c(1,2,3,4,5,6,7,8,9,10,11,12))
+p5 <-ggplot(aes(x = month(date), y = average_price), data = subset(avocado, year == '2019')) + geom_line(stat = 'summary',size = 1) +
+  ggtitle('Average Price over year 2019') + scale_x_continuous(breaks = c(1,2,3,4,5,6,7,8,9,10,11,12))
+grid.arrange(p1,p2,p3, p4, p5)
+```
+Based on the plots above, it is evident that there seems to be some type of trend of price increase towards the end of the year. 
+
+Furthermore, utilized Two-Way ANOVA testing to determine whether the price has a relationship with a fire being present in California. The independent factors used were year and fire while the dependent variable was the average price. To include the possibility of interaction tested with and without the possibility of interaction and compared the differences.
+```{r firetest, echo = FALSE}
+# To investigate the relationship between average_price and two factors year & fire, used Two way ANOVA
+#Hyp:These is no interaction effect between year and fire
+
+## Interaction Effect Test:
+avocado1 <- avocado[,-c(12)]
+full<- lm(average_price ~ (fire*year2015)+(fire*year2016)+(fire*year2017)+(fire*year2018)+(fire*year2019)
+          , data=avocado1); 
+summary(full)
+```
+As seen based on the low p-value of < 0.00000000000000022 for the model , there does seem to be a significant relationship between fire and average price. 
+
+To further this analysis, the model was repeated without the interaction to check for any change in significance.
+
+```{r firetest2, echo = FALSE}
+reduced.int<- lm(average_price ~ fire+year2015+year2016+year2017+year2018+year2019, data=avocado1); summary(reduced.int)
+```
+When the interaction was removed, the p-value for the model remained low at a value of < 0.00000000000000022.
+
+
+```{r firetest3, echo = FALSE}
+anova(reduced.int, full)
+# The interaction effect is significant. No further action is needed.
+```
+Now that we have tested each model individually, ANOVA analysis was done between the two models which resulted in Model 2 having a p-value of 0.009588. As seen with the low p-value, the relationship between the independent variables of year and fire does seem to be significant with the dependent variable of average price. 
+
+## F. Building and Analyzing Models
+
+Once completed all tests for hypotheses, continued analysis on the avocado dataset to identify the best predictive model that a business can use to predict the average price. These models will also help us determine the most impactful predictor variables when predicting average price. First,ran all of the different models and then at the end, the best model was identified.
+
+To run all of these models, our dataset was divideded into two parts: A training dataset with 80% of observations and a test dataset with the remaining 20%.
+
+### Linear Regression Model
+
+The first predictive model that was created was the Linear Regression Model. This model was chosen to identify the relationships between the independent variables and the average price.  The linear regression model was created using the training dataset and later tested on the test dataset.
+
+```{r linreg, echo = FALSE}
+set.seed(42) 
+# Partitioning the Dataset
+train.index <- createDataPartition(avocado$average_price, p = 0.8, list = FALSE)
+train.df <- avocado[train.index, ]
+valid.df <- avocado[-train.index, ]
+
+#linear regression considering all variables and without log
+
+av.lm1 <- lm(average_price ~ total_volume+X4046+X4225+X4770+total_bags+small_bags
+             +large_bags+type+season+region+year2015+year2016+year2017+year2018 +year2019+fire, data = train.df)
+summary(av.lm1)
+```
+From the model above, 15 variables have low enough p-values to be considered significant, however this is not enough to decide whether those are the best variables for the model. Other notable statistics found in the model is the Adjusted R-Squared of 0.4952 and RMSE of 0.275832.
+
+While the overall model displays significance (as evidenced through a p-value of < 0.00000000000000022), it is important to check the diagnostic plots for the assumptions of linear regression before moving on to selecting the best predictors.
+
+```{r linreg Assumptions, echo = FALSE}
+# Check Assumptions
+par(mfrow = c(2,2))
+plot(av.lm1)
+par(mfrow = c(1,1))
+```
+From the diagnostics plots for linear regression model, we observe that:
+
+1. Residuals vs Fitted : shows residuals have linear pattern, while this is in a cone pattern, could be due to the time-series nature of our data.
+2. Normal Q-Q : shows residuals are normally distributed
+3. Scale-Location : shows that the residuals are spread equally along the ranges of predictors
+4. Residuals vs Leverage : All the observations are inside the cook's distance lines
+
+Lastly, tested this linear regression model with our test data set to check for predictive performance.
+
+```{r linreg prediction, echo = FALSE}
+av.lm.pred1 <- predict(av.lm1, valid.df)
+accuracy(av.lm.pred1, valid.df$average_price)
+```
+Here we can see the various error values which we will later use to compare the variety of different models. 
+
+### Subset Selection Models
+
+The next model selection method that tested is the subset selection models. This model extends the linear regression methodology by finding a subset of all of the independent variables that best predict the average price. It utilizes three different methods which are as follows: backward selection (start with full model and drop variables), forward selection (start with empty model and add variables), and stepwise selection (a combination of backward and forward where each direction is calculated at each step). It determines whether or not to continue analysis by calculating the AIC value which is a prediction error estimator used to compare different models. A lower AIC value represents lower error, so when the model reaches the lowest AIC value, that defines the end of calculation. 
+
+**Backward Selection **  
+
+Starting with the backward selection, in this model the selection begins with all of the variables and then drops variables until it reaches the minimum AIC value. 
+
+```{r backwardSelect, echo = FALSE}
+
+av.lm.bselect <- step(av.lm1, direction = "backward")
+sum <- summary(av.lm.bselect)  # Which variables were dropped?
+av.lm.bselect.pred <- predict(av.lm.bselect, valid.df)
+accuracy(av.lm.bselect.pred, valid.df$average_price)
+
+```
+Using the backward selection method,get a model with 15 predictors. This model has an AIC value of -61385.27, Adjusted R-square value of `r sum$adj.r.squared`, and RMSE 0.2759. 
+
+**Forward Selection **  
+
+Moving on, next ran the forward selection model which begins with 0 predictors and adds more until it reaches minimum AIC values. 
+
+```{r forwardSelect,  include = FALSE}
+# create model with no predictors
+av.lm.null <- lm(average_price~1, data = train.df)
+
+# use step() to run forward regression.
+av.lm.fselect <- step(av.lm.null, scope=list(lower=av.lm.null, upper=av.lm1), direction = "forward")
+```
+
+
+```{r forwardSelectsummary, echo = FALSE}
+sum <- summary(av.lm.fselect)  # Which variables were added?
+sum
+av.lm.fselect.pred <- predict(av.lm.fselect, valid.df)
+accuracy(av.lm.fselect.pred, valid.df$average_price)
+
+```
+Using the forward selection method, get a model with 15 predictors having AIC=-61385.27, Adjusted R-square value of `r sum$adj.r.squared`, and RMSE 0.2759. This gives the same model as the backward selection model.
+
+**Stepwise Regression **  
+
+Next, utilized the stepwise model to determine whether there are any better models when compared to backwards and forwards regression. In this method, started with 0 predictors and add or subtract one until the minimal AIC value has been reached
+
+```{r Stepwise, echo = FALSE}
+av.lm.stepwise <- step(av.lm1, direction = "both")
+```
+
+
+```{r StepwiseSummary, echo = FALSE}
+sum <- summary(av.lm.stepwise)  # Which variables were dropped/added?
+
+av.lm.stepwise.pred <- predict(av.lm.stepwise, valid.df)
+accuracy(av.lm.stepwise.pred, valid.df$average_price)
+```
+Using the stepwise regression, get a model with 15 predictors having AIC=-61385.27, Adjusted R-square value of `r sum$adj.r.squared`, and RMSE 0.2759. This gives the same model as the backward and forward selection model.
+
+All of the three models in the subset selection methods, remove the year2018 variable and provide a final model of 15 predictors having an AIC of -61385.27 and RMSE of 0.2759.
+
+### Elastic Net 
+
+The next modeling method that was utilized is the elastic net method. This method is a combination of lasso and ridge regression that can reduce the predictors in our model. It utilizes an alpha value which stands as a mixing parameter and combines the weights of lasso and ridge regression to generate an overall better model. 
+
+**Linear Regression using Cross Validation**
+
+First did cross validation and ran a linear regression model.
+
+```{r linearregression, include = FALSE}
+# Custom Control Parameters
+set.seed(42)
+tr <- trainControl(method = "repeatedcv", 
+                          number = 10, repeats = 3,
+                          verboseIter = TRUE)
+
+lm <- train(average_price ~ total_volume+X4046+X4225+X4770+total_bags+small_bags
+             +large_bags+type+season+region+year2015+year2016+year2017+year2018
+             +year2019+fire, data = train.df, method = 'lm',
+               trControl = tr)
+```
+
+
+```{r linearregressionResults, echo = FALSE}
+# check results
+summary(lm) 
+lm$results
+```
+This initial model gives us similar results to the exhaustive, backwards, and forwards selection models.
+
+```{r linearregressionAssumptions, include = FALSE}
+# Check Assumptions
+par(mfrow = c(2,2))
+plot(lm$finalModel)
+par(mfrow = c(1,1))
+```
+
+Next created an elastic net model that identifies the best values for the alpha. 
+
+```{r elastic, include = FALSE}
+enet.av <- train(average_price~ total_volume+X4046+X4225+X4770+total_bags+small_bags
+             +large_bags+type+season+region+year2015+year2016+year2017+year2018
+             +year2019+fire, 
+             train.df, method = 'glmnet',
+             tuneGrid = expand.grid(alpha = seq(0, 1, length = 10), 
+             lambda = seq(0.0001, 0.3, length = 10)),
+             trControl = tr)
+```
+
+
+```{r elasticAlpha, echo = FALSE}
+# print best-tuned results
+enet.av$bestTune
+plot(enet.av)  
+```
+
+From the Elastic Net Regression, get alpha (mixing parameter) as 0.1111 and lambda (shrinkage parameter) to be 1e-04. Since the alpha is closer to 0 than to 1, this model is closer to Ridge regression.
+
+```{r elasticResult, echo = FALSE}
+# plot results
+plot(enet.av$finalModel, xvar = 'lambda', lwd =1.4, label=TRUE)
+```
+From Log Lambda vs Coefficient plot, coefficients are getting closer as we increase the penalty and the number of predictors are going down.
+
+```{r elasticResult2, echo = FALSE}
+plot(varImp(enet.av, scale = TRUE))
+```
+From the Importance plot we can see that typeorganic, seasonwinter, year_2017, regionNortheast, seasonspring, regionwest, fire, year_2019, seasonsummer, year_2015, year_2016 are important variables.
+
+To further summarize the elastic net, ran the following summary of the best result:
+
+```{r bestResult, echo = FALSE}
+get_best_result = function(caret_fit) {
+  best = which(rownames(caret_fit$results) == rownames(caret_fit$bestTune))
+  best_result = caret_fit$results[best, ]
+  rownames(best_result) = NULL
+  best_result
+}
+
+
+get_best_result(enet.av)
+```
+In the best result of the elastic net calculation, the RMSE is 0.2722298 and the r squared value is 0.4937717. While these numbers describe the training dataset, also ran the predictive error which came out to:  
+
+```{r bestResultVariables, echo= FALSE, include = FALSE}
+best <- enet.av$finalModel
+coef(best, s = enet.av$bestTune$lambda)
+```
+
+```{r prediction, echo = FALSE}
+ 
+ # Prediction Error: Training Data 
+pred1 <- predict(enet.av, train.df)
+error1 <- (train.df$average_price - pred1)
+sqrt(mean((error1)^2))
+ 
+```
+
+
+### Ensemble Methods
+
+The last type of methods that tested to find the best model was the ensemble methods. These methods create multiple different versions (trees) and then combine them to determine the best result. 
+
+**Boosting**
+
+The first type of ensemble method is the boosting technique. In boosting, various different models are composed and then aggregated to create a stronger learner using the weak models. In this sense, a weak model is one that does not perform well when evaluated independently, but can be combined for more complex models.
+
+```{r boosting, echo = FALSE}
+set.seed(42)
+tree.Avocado <-rpart(average_price~total_volume+X4046+X4225+X4770+total_bags+small_bags+large_bags+type+season+region+year2015+year2016+year2017+year2018+year2019+fire, data=train.df)
+
+#summary(tree.Avocado)
+rpart.plot(tree.Avocado,type=2,digits = 4)
+```
+For Conventional avocados, when X4046<=324.9e+3 and year is not equal to 2017,the average_price of avocado is $1.175 and 30.44% avocados belong to this category.
+
+For Organic avocados, when the region is not Midwest or South and season is Spring or Winter, the average_price is \$1.614 and that 13% (highest for organic type) belong to this bag. In the case when region is other than Midwest or South, season is not Spring or Winter, and X4225 >= 467, we can see max average_price of $1.893 for organic avocados.
+
+To further our analysis, plotted the MSE of the Train and Test datasets against different shrinkage values to evaluate the change. 
+
+```{r boostingerr1, echo = FALSE}
+pows <- seq(-10, -0.2, by = 0.1)
+lambdas <- 10^pows
+
+train.err <- rep(NA, length(lambdas))
+
+for (i in 1:length(lambdas)) {
+    boost.Avocado <-gbm(average_price~total_volume+X4046+X4225+X4770+total_bags+small_bags+large_bags+type+season+region+year2015+year2016+year2017+year2018+year2019+fire, data=train.df, distribution = "gaussian", n.trees = 200, shrinkage = lambdas[i])
+    pred.train <- predict(boost.Avocado, train.df, n.trees = 200)
+    train.err[i] <- mean((pred.train - train.df$average_price)^2)
+}
+plot(lambdas, train.err, type = "b", xlab = "Shrinkage values", ylab = "Training MSE")
+```
+From the plot of shrinkage values vs Training MSE, we can see that as the shrinkage parameter increases, training set MSE decreases.
+
+```{r boostingerr2 , echo = FALSE}
+set.seed(42)
+test.err <- rep(NA, length(lambdas))
+for (i in 1:length(lambdas)) {
+    boost.Avocado <-gbm(average_price~total_volume+X4046+X4225+X4770+total_bags+small_bags+large_bags+type+season+region+year2015+year2016+year2017+year2018+year2019+fire, data=train.df, distribution = "gaussian", n.trees = 200, shrinkage = lambdas[i])
+    yhat <- predict(boost.Avocado, valid.df, n.trees = 200)
+    test.err[i] <- mean((yhat - valid.df$average_price)^2)
+}
+plot(lambdas, test.err, type = "b", xlab = "Shrinkage values", ylab = "Test MSE")
+```
+From the plot of shrinkage values vs. Test MSE, we can see that as the shrinkage parameter increases, Test set MSE decreases.
+
+As part of the final step of the boosting model, will identify the top predictors in the model. 
+
+```{r boostedimp, message = FALSE, warning = FALSE, error = FALSE, echo = FALSE}
+set.seed(42)
+#min(test.err)
+boost.Avocado <-gbm(average_price~total_volume+X4046+X4225+X4770+total_bags+small_bags+large_bags+type+season+region+year2015+year2016+year2017+year2018+year2019+fire, data=train.df, distribution = "gaussian", n.trees = 200, shrinkage = lambdas[which.min(test.err)])
+summary(boost.Avocado)
+yhat.bag <- predict(boost.Avocado, newdata = valid.df)
+```
+Type appears to be the most important predictor (having highest relative influence) followed by X4046 in the boosted model. It has mean squared error of `r mean((yhat.bag - valid.df$average_price)^2)` and shrinkage parameter of `r lambdas[which.min(test.err)]`.
+
+**Bagging**
+
+The second type of ensemble method is the bagging technique, in this method decision trees are repeated made numerous times and then averaged to reduce the variance.
+
+In the plot below, the bagging method is used to predict values (average_price) and then they are plotted against the actual values (average_price) in the valid dataset.
+
+```{r bagging, echo = FALSE}
+#Bagging
+set.seed(42)
+bag.Avocado <- randomForest(average_price~total_volume+X4046+X4225+X4770+total_bags+small_bags+large_bags+type+season+region+year2015+year2016+year2017+year2018+year2019+fire,data = train.df, mtry = 16, ntree = 200)#mtry: number of predictors,here taken 16 since it is bagging
+yhat.bag <- predict(bag.Avocado, newdata = valid.df)
+plot(yhat.bag, valid.df$average_price)
+#mean((yhat.bag - valid.df$average_price)^2)
+```
+The bagging model gives mean squared error as `r mean((yhat.bag - valid.df$average_price)^2)`
+
+**Random Forest**
+
+The last type of ensemble method that was tested is the random forest method. This method is similar to that of bagging, except each time a tree is split, only a random sample of predictors are chosen as split candidates. 
+
+```{r randomForest25, echo = FALSE}
+set.seed(42)
+bag.av1 <- randomForest(average_price~total_volume+X4046+X4225+X4770+total_bags+small_bags+large_bags+type+season+region+year2015+year2016+year2017+year2018+year2019+fire, data=train.df, ntree= 25,mtry = 6, importance = TRUE)  # mtry: number of predictors, taken 6 as a subset of predictors
+bag.av1
+yhat.bag <- predict(bag.av1, newdata=valid.df)
+#mean((yhat.bag - valid.df$average_price)^2)
+```
+The Random Forest model with mtry = 6 and ntree = 25 gives mean squared error as `r mean((yhat.bag - valid.df$average_price)^2)` which is greater than bagging model.
+
+```{r randomForest200, echo = FALSE}
+bag.av2 <- randomForest(average_price~total_volume+X4046+X4225+X4770+total_bags+small_bags+large_bags+type+season+region+year2015+year2016+year2017+year2018+year2019+fire,data = train.df, mtry = 6, ntree = 200)#mtry: number of predictors,here taken 16 since it is bagging
+yhat.bag <- predict(bag.av2, newdata = valid.df)
+#mean((yhat.bag - valid.df$average_price)^2)
+```
+The Random Forest model with mtry = 6 and ntree = 200 gives mean squared error as `r mean((yhat.bag - valid.df$average_price)^2)` which is the same as that of bagging model.
+
+
+```{r randomForestplot, echo = FALSE}
+# Error vs Trees
+plot(bag.av2)
+```
+We observe that as the number of trees increases, the error decreases.
+
+```{r randomForestPurity, echo = FALSE}
+#variable Importance
+importance(bag.av2)
+varImpPlot(bag.av2)
+```
+We can see important variables from the model with 200 trees having the lowest mean squared error. IncNodePurity is the measure of total decrease in the node purity that results from the split over that variable. From the output, we can deliberate that the type variable has most impact (636.85 purity), followed by X4046 (509.48 purity) and total_volume (389.06 purity), in terms of purity.
+
+**Random Forest using variables that have more impact on purity:**
+
+```{r randomForestPurity2, echo = FALSE}
+bag.av3 <- randomForest(average_price~total_volume+X4046+X4225+total_bags+small_bags+type+season+region,data = train.df, mtry = 6, ntree = 200)#mtry: number of predictors,here taken 16 since it is bagging
+yhat.bag <- predict(bag.av3, newdata = valid.df)
+#mean((yhat.bag - valid.df$average_price)^2)
+```
+This model has mean squared error `r mean((yhat.bag - valid.df$average_price)^2)`  which is more than other random forest models. The models given by bagging and the second model given by random forest (bag.av2) give same mean squared error at 0.017.
+
+## G. Future Opportunities
+
+While this analysis may seem thorough, there are a few opportunities to improve on this analysis and they are listed as follows:
+
+1. Expand the dataset
+  + Adding more observations will allow the predicitive models to be more accurate and improve the correlations. In this instance, using more years going back before the year of 2015 could be beneficial as it will give a longer time frame for the time series. 
+
+2. Algorithm Tuning
+  + The algorithms used here could be tuned for more accuracy of the overall model. For example, the random forest testing could be used with more trees and different number of variables at each split.
+  
+3. Feature Engineering
+  + Adding new features beyond this dataset could prove to be useful as it is possible that the most influential feature is not currently included in it. It could help enhance the adjusted R squared and RMSE values. 
+
+## H. Conclusion
+
+Now that we have reached the end, it is important to summarize and conclude the hypotheses testing and predictive modeling. In this analysis, obtained market data on avocado sales throughout the United States that was sourced from the Hass Avocado Board. Using the avocado data, I analyzed and concluded the following three hypotheses: 
+
+1. Avocado Pricing shows more relationship to season rather than region
+  + Here utilized Two-Way ANOVA analysis to conclude that the relationship between the independent variables of season and region is significant with the independent variable of average price. The categorical value of season shows a partial ETA squared value of 0.045 and the partial ETA squared value for region is 0.035. Furthermore, the partial ETA squared values were then compared to evaluate the effect which displayed that there is evidence of season having a higher effect than region with respect to average price. 
+  
+2. Over time, across all regions, consumers become less price sensitive.
+  + Here calculated the price elasticity value for each of the years and then classified the values as inelastic, unitary, or elastic. The years of 2015, 2017, 2018, and 2019 each displayed price elasticity values that represented inelastic movement while the year of 2016 displayed a price elasticity value that represented elastic price movement. Using the trend of the values, there seems to be evidence of an inelastic movement of price sensitivity over the years. 
+
+3. There is a change in avocado prices during the seasonal California wildfires. 
+  + Conducted ANOVA analysis between the two models (average price vs year and fire with and without interaction) which resulted in the model without interaction of year and fire having a p-value of 0.009588. As seen with the low p-value, the relationship between the independent variables of year and fire does seem to be significant with the dependent variable of average price.
+  
+Following the tests for hypotheses, executed multiple modeling methods to determine the best model that can be used to get a better understanding of the variables associated with the average price of avocados. The models and results are as follows:
+
+1. Linear Regression
+  + This model resulted in a model with 15 predictors, R-Squared of 0.4952, and RMSE of 0.2759.
+2. Subset Selection
+  + Backward Selection : Resulted in a model with 15 predictors, AIC value of -61385.27, R-Squared value of 0.4952, and RMSE of 0.2759.
+  + Forward Selection : Resulted in a model with 15 predictors, AIC value of -61385.27, R-Squared value of 0.4952, and RMSE of 0.2759.
+  + Stepwise Selection : Resulted in a model with 15 predictors, AIC value of -61385.27, R-Squared value of 0.4952, and RMSE of 0.2759.
+3. Elastic Net Methods
+  + This model ranked the predictors predictors with typeorganic, seasonwinter, year_2017, regionNortheast, seasonspring, regionwest, fire, year_2019, seasonsummer, year_2015, and year_2016 being the most important variables. It resulted in a RMSE value of 0.2722 and R-Squared value of 0.4937.
+4. Ensemble Methods:
+  + Boosting : MSE of 0.056188 and RMSE of 0.2370
+  + Bagging : MSE of 0.0177875 and RMSE of 0.1337
+  + Random Forest : With 200 trees and 6 variables at each split: MSE of 0.0176169 and RMSE of 0.1327
+
+Based on the RMSE values across all models, I can conclude that the Random Forest Ensemble Method produces the most accurate predictive model for avocados. Here choosen RMSE score to compare the models as it produces a value for error and this can be compared across each model. Furthermore, the model displays that the type, avocado size, and bag  sizes seem to be the most influential variables in determining average price which seems to align with what is expected from a business prospective. Businesses can use this model to further understand the avocado pricing structure and enhance their business. 
+
+## I. References and Sources
+
+1. Kaggle Dataset
+https://www.kaggle.com/timmate/avocado-prices-2020
+
+2. Census Regions of the United States 
+https://www2.census.gov/geo/pdfs/maps-data/maps/reference/us_regdiv.pdf
+
+3. Two-Way ANOVA
+https://www.scribbr.com/statistics/anova-in-r/
+
+3. Wildfire dates
+https://en.wikipedia.org/wiki/2018_California_wildfires
+
+4. Regions of wildfires in California - Ventura,San Diego,San Luis Obispo
+https://en.wikipedia.org/wiki/California_Avocado_Commission
+
+
+
+
+
+
+
+
