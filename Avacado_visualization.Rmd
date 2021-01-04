@@ -1,0 +1,150 @@
+---
+title: "Project"
+author: "Neetika Saxena"
+date: "9/21/2020"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r}
+knitr::opts_chunk$set(echo = FALSE)
+options(scipen=999)
+```
+## Avocado Analysis
+Source: https://www.kaggle.com/timmate/avocado-prices-2020?select=avocado-updated-2020.csv
+
+Question for Analysis:
+
+* What happened to avocado prices and consumption in 2020?
+* How do the prices of avocados vary by region?
+# Loading Packages
+```{r}
+if(!require("ggplot2")) install.packages("ggplot2")
+if(!require("knitr")) install.packages("knitr")
+if(!require("GGally")) install.packages("GGally")
+if(!require("gridExtra")) install.packages("gridExtra")
+if(!require("dplyr")) install.packages("dplyr")
+if(!require("lubridate")) install.packages("lubridate")     
+library(ggplot2)
+library(knitr)
+library(GGally)
+library(gridExtra)
+library(dplyr)
+library(lubridate)
+```
+# Loading Data
+```{r}
+av = read.csv("avocado-updated-2020.csv")
+```
+# Get Duplicate Rows and missing values in the DataSet
+```{r}
+sum(duplicated(av))
+sum(is.na(av))
+```
+# Explore Variables of DataSet
+```{r}
+str(av)
+```
+# Converting Date into Date-Type, which is Character Type
+```{r}
+av$date = mdy(av$date)
+class(av$date)
+```
+
+```{r}
+ggplot(av, aes(x=average_price)) +
+geom_histogram()
+```
+# Lets visualize the Average_Price of Avacado per year
+```{r}
+#compute average price per year
+library(dplyr)
+avg_avocados = av %>%
+  select(average_price,year) %>%
+  group_by(year) %>%
+  filter(average_price < quantile(average_price, 0.99))
+
+avg_avocado_box = ggplot(avg_avocados, aes(factor(year), average_price)) + geom_boxplot(aes(fill = factor(year)), width = 0.75) + labs(title="Average Price of Avocados Per Year", x="Year", y="Price ($)") + scale_fill_brewer(palette="Greens")
+print(avg_avocado_box)
+```
+# Lets visualize the Average_Price of Avacado on th basis of Geography
+```{r}
+sorted = av %>% 
+  group_by(geography) %>%
+  mutate(avgvolume = mean(total_volume))
+plot = ggplot(data=sorted, aes(x=reorder(as.factor(geography), -avgvolume), y=average_price)) +
+  geom_point(aes(color=month(date), alpha=0.1, size=total_volume)) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  guides(size = "none") +
+  guides(alpha = "none")
+print(plot)
+```
+```{r}
+unique(av$geography)
+```
+Box Plot and Histrogram Representation of Types of Avocado
+```{r}
+ap1_org <- ggplot(aes(y = average_price), data = subset(av, type == 'organic')) +
+  geom_boxplot(fill = 'pink') + 
+  ylab('Average Price') +
+  ggtitle('Organic Avocado Boxplot')
+
+ap2_org <- ggplot(aes(x = average_price), data = subset(av, type == 'organic')) +
+  geom_histogram(fill = 'pink') +
+  scale_y_continuous(breaks = seq(0,1000,100)) + 
+  scale_x_continuous(breaks = seq(0,3.25,.5)) +
+  ggtitle('Organic Avocado Histogram')
+
+ap1_con <- ggplot(aes(y = average_price), data = subset(av, type == 'conventional')) +
+  geom_boxplot(fill = 'orange') + 
+  scale_y_continuous(breaks = seq(0,2.5,.25)) +
+  ylab('Average Price') +
+  ggtitle('Conventional Avocado Boxplot')
+
+ap2_con <- ggplot(aes(x = average_price), data = subset(av, type == 'conventional')) +
+  geom_histogram(fill = 'orange') +
+  scale_y_continuous(breaks = seq(0,800,100)) +
+  scale_x_continuous(breaks = seq(0,2.25,.25)) +
+  ggtitle('Conventional Avocado Histogram')
+suppressMessages(grid.arrange(ap1_org, ap2_org, ap1_con, ap2_con, ncol = 2)) 
+```
+From 2015 to 2020 the Trend of differnt PLU sold in US region for Coventional Type
+```{r}
+p1 <- ggplot(aes(x = date, y = X4046), data = subset(av, geography == 'Total U.S.' & type == 'conventional')) +
+  geom_line(stat = 'summary',size = 1) +
+  ggtitle('Average Sales of X4046 (small) Conventional Avocados Type Over Time')
+
+p2 <- ggplot(aes(x = date, y = X4225), data = subset(av, geography== 'Total U.S.' & type == 'conventional')) +
+  geom_line(stat = 'summary',size = 1) +
+  ggtitle('Average Sales of X4225 (medium) Conventional Avocados Type Over Time')   
+
+p3 <- ggplot(aes(x = date, y = X4770), data = subset(av, geography== 'Total U.S.' & type == 'conventional')) +
+  geom_line(stat = 'summary',size = 1) +
+  ggtitle('Average Sales of X4770 (large) Conventional Avocados Type Over Time')
+grid.arrange(p1,p2,p3, ncol = 1)
+```
+From 2015 to 2020 the Trend of differnt PLU sold in US region for Organic Type
+```{r}
+p1 <- ggplot(aes(x = date, y = X4046), data = subset(av, geography == 'Total U.S.' & type == 'organic')) +
+  geom_line(stat = 'summary',size = 1) +
+  ggtitle('Average Sales of X4046 (small) Organic Avocados Type Over Time')
+
+p2 <- ggplot(aes(x = date, y = X4225), data = subset(av, geography== 'Total U.S.' & type == 'organic')) +
+  geom_line(stat = 'summary',size = 1) +
+  ggtitle('Average Sales of X4225 (medium) Organic Avocados Type Over Time')   
+
+p3 <- ggplot(aes(x = date, y = X4770), data = subset(av, geography== 'Total U.S.' & type == 'organic')) +
+  geom_line(stat = 'summary',size = 1) +
+  ggtitle('Average Sales of X4770 (large) Organic Avocados Type Over Time')
+grid.arrange(p1,p2,p3, ncol = 1)
+```
+Correlation Matrix, to find relation among the numerical value
+```{r}
+if(!require("corrplot")) install.packages("corrplot")
+library(corrplot)
+library(data.table)
+av.dt = data.table(av)
+M = cor(av.dt[,!c("date","type","geography","year")])
+corrplot(M, method="number",bg="gold2")
+```
